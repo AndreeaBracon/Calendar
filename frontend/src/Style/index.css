@@ -1,0 +1,9 @@
+.rbc-header {
+  display: none;
+}
+
+/* Hide default agenda date and time headers */
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  display: none;
+}

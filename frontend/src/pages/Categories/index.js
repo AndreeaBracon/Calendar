@@ -1,17 +1,12 @@
 import React from 'react'
 import { useEffect, useState } from 'react';
 import {Link} from 'react-router-dom';
-import {Box, Paper, Table, TableBody, TableCell, TableContainer, IconButton, Dialog, DialogActions, DialogTitle, DialogContent} from '@mui/material';
+import {Box, Paper, Table, TableBody, TableCell, TableContainer, IconButton, Dialog, DialogActions, DialogTitle} from '@mui/material';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-import TextField from '@mui/material/TextField';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'; 
 import useRequestResource from 'src/hooks/useRequestResource';
 import ColorBox from 'src/components/ColorBox';
 
@@ -23,9 +18,6 @@ export default function Categories () {
     });
     const[ open, setOpen] = useState(false);
     const[idToDelete, setIdToDelete] = useState(null);
-    const [openReminderDialog, setOpenReminderDialog] = useState(false);
-    const [reminderDateTime, setReminderDateTime] = useState(new Date());
-    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
     useEffect(() => {
         getResourceList();
@@ -45,30 +37,7 @@ export default function Categories () {
         deleteResource(idToDelete);
     }
 
-    const handleAddReminder = (categoryId) => {
-        setSelectedCategoryId(categoryId);
-        setOpenReminderDialog(true);
-    };
-
-    const handleReminderClose = () => {
-        setOpenReminderDialog(false);
-    };
-
-    const handleSetReminder = () => {
-        const promise = saveReminder(selectedCategoryId, reminderDateTime);
-        // Assuming saveReminder expects the category ID and the reminder date/time directly
-        saveReminder(selectedCategoryId, reminderDateTime)
-            .then(() => {
-                setOpenReminderDialog(false);
-                // Optionally, refresh the list or state to reflect the newly set reminder
-                getResourceList();
-            })
-            .catch(error => {
-                console.error('Error setting reminder:', error);
-            });
-    };
     
-
     return(
         <div>
             <Dialog open={open} onClose={handleDeleteClose}>
@@ -82,24 +51,6 @@ export default function Categories () {
                     <Button onClick={handleDeleteClose}>
                         No
                     </Button>
-                </DialogActions>
-            </Dialog>
-            <Dialog open={openReminderDialog} onClose={handleReminderClose}>
-                <DialogTitle>Set a Reminder</DialogTitle>
-                <DialogContent>
-                    <LocalizationProvider dateAdapter={ AdapterDateFns }>
-                        <DatePicker 
-                            renderInput={(props) => <TextField {...props} />}
-                            label="Date & Time"
-                            value={reminderDateTime}
-                            onChange={setReminderDateTime}
-                            sx={{mt:2}}
-                        />
-                    </LocalizationProvider>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleSetReminder}>Set</Button>
-                    <Button onClick={handleReminderClose}>Cancel</Button>
                 </DialogActions>
             </Dialog>
 
@@ -139,14 +90,6 @@ export default function Categories () {
                                 </TableCell>
                                 <TableCell align='right'>
                                     <Box sx={{display:'flex',justifyContent:'flex-end'}}>
-                                    <IconButton
-                                        size='large'
-                                        sx={{mt:2, mr:2}}
-                                        onClick={() => handleAddReminder(r.id)}
-                                        color={r.hasReminder ? "secondary" : "default"}
-                                        >
-                                        <NotificationsNoneOutlinedIcon />
-                                    </IconButton>
                                         <Link to={`/categories/edit/${r.id}`}
                                             key='category-edit'>
                                                 <IconButton size='large'>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch  } from 'react-hook-form';
 import { Box, Drawer, Typography, TextField, Button, MenuItem, FormControlLabel, Switch } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import moment from 'moment';
@@ -8,16 +8,18 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFnsV3';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MobileTimePicker from '@mui/lab/MobileTimePicker';
 import useRequestResource from 'src/hooks/useRequestResource';
 import { addEvent, updateEvent, deleteEvent } from 'src/store/events';
 import { useDispatch } from 'react-redux';
+
+import 'src/Style/index.css';
 
 
 const drawerWidth = 300;
 
 export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent}) {
   const { enqueueSnackbar } = useSnackbar();
+
 
   const dispatch = useDispatch();
 
@@ -41,6 +43,14 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
     getResourceList();
   }, [getResourceList]);
 
+// Watch the value of the "allDay" switch
+  const allDay = useWatch({
+    control,
+    name: 'allDay',
+    defaultValue: false,
+  });
+
+// Form submission logic
   const onSubmit = (data) => {
     console.log('data', data)
     const formattedData = {
@@ -50,7 +60,6 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
       allDay: data.allDay,
       url: data.url,
       category: data.category
-      // Include other fields as neededconsole.log
     };
 
     if (selectedEvent?.id) {
@@ -62,9 +71,10 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
           closeDrawer();
         })
         .catch((error) => {
-          // Handle error
+        
         });
     } else {
+      // Add a new event if there's no selected event
 
     dispatch(addEvent(formattedData))
       .unwrap()
@@ -73,7 +83,6 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
         closeDrawer();
       })
       .catch((error) => {
-        // Correctly extracting and showing the error message
         const errorMessage = error.response && error.response.data && error.response.data.detail
           ? error.response.data.detail
           : error.message || 'An unknown error occurred';
@@ -83,6 +92,7 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
       });
   }};
 
+  // Handle the deletion of an event
   const handleDelete = () => {
     if (selectedEvent?.id) {
       dispatch(deleteEvent(selectedEvent.id))
@@ -100,11 +110,12 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
     }
   };
 
+// Reset the form values based on the selected event
   useEffect(() => {
     if (selectedEvent) {
       reset({
         title: selectedEvent.title,
-        category: selectedEvent.category, // Use "category" instead of "categories"
+        category: selectedEvent.category,
         startDate: moment(selectedEvent.start).format('YYYY-MM-DDTHH:mm:ssZ'),
         endDate: moment(selectedEvent.end).format('YYYY-MM-DDTHH:mm:ssZ'),
         allDay: selectedEvent.allDay,
@@ -113,7 +124,7 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
     } else {
       reset({
         title: '',
-        category: '', // Use "category" instead of "categories"
+        category: '',
         startDate: '',
         endDate: '',
         allDay: false,
@@ -125,7 +136,7 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
 
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <LocalizationProvider dateAdapter={AdapterDateFns} >
       <Drawer
         anchor="right"
         open={mobileOpen}
@@ -177,18 +188,25 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
               )}
             />
 
+            {/* Start Date Picker - Disable interaction if allDay is true */}
             <Controller
               name="startDate"
               control={control}
               rules={{ required: 'Start date is required' }}
-              render={({ field }) => (
+              render={({ field }) => ( 
                 <DateTimePicker
                 inputVariant="outlined"
                 size='small'
                   label="Start Date"
                   {...field}
-                  renderInput={(params) => <TextField {...params} error={!!errors.startDate} helperText={errors.startDate ? errors.startDate.message : '' } />}
-                  sx={{ mb: 2 }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.startDate}
+                      helperText={errors.startDate ? errors.startDate.message : ''}
+                      sx={{ mb: 2 }}
+                    />
+                  )}
                   ampm={false}
                 />
               )}
@@ -200,39 +218,20 @@ export default function AddEventSideBar({ mobileOpen, closeDrawer, selectedEvent
               render={({ field }) => (
                 <DateTimePicker
                   label="End Date"
-                  {...field}
-                  renderInput={(params) => <TextField {...params} error={!!errors.endDate} helperText={errors.endDate ? errors.endDate.message : ''} />}
+                  readOnly={allDay} // Prevent opening the calendar dialog
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!errors.endDate}
+                      helperText={errors.endDate ? errors.endDate.message : ''}
+                      disabled={allDay} // Disable text input
+                    />
+                  )}
                   minDate={control._formValues.startDate}
                   ampm={false}
                 />
               )}
             />
-
-            {/* <DateTimePicker
-              {...register("startDate", { required: 'Start date is required' })}
-              fullWidth
-              label="Start Date"
-              type="date"
-              renderInput={(params) => <TextField {...params} />}
-              error={!!errors.startDate}
-              helperText={errors.startDate ? errors.startDate.message : ''}
-              sx={{ mb: 2 }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-            <TextField
-              {...register("endDate", { required: 'End date is required' })}
-              fullWidth
-              label="End Date"
-              type="date"
-              error={!!errors.endDate}
-              helperText={errors.endDate ? errors.endDate.message : ''}
-              sx={{ mb: 2 }}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            /> */}
             <Controller
               name="allDay"
               control={control}

@@ -1,9 +1,40 @@
 .rbc-header {
   display: none;
+  font-family: 'Georgia', serif;
 }
 
 /* Hide default agenda date and time headers */
 .rbc-agenda-date-cell,
 .rbc-agenda-time-cell {
+  display: none;
+}
+
+.rbc-calendar {
+  font-family: 'Georgia', serif;
+  font-size: 15px;
+  size: 50px; ;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+
+/* Specific override for event titles */
+.rbc-event-content {
+  font-size: 15px; /* Smaller font size for event content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Customizing the agenda view */
+.rbc-agenda-content {
+  font-size: 15px;
+}
+
+
+::-webkit-scrollbar {
   display: none;
 }
